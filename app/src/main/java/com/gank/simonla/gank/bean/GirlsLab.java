@@ -1,6 +1,8 @@
 package com.gank.simonla.gank.bean;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Message;
 
 import com.gank.simonla.gank.utils.HttpUtil;
 
@@ -16,6 +18,7 @@ import java.util.ArrayList;
 public class GirlsLab {
 
     public static final String TAG = "GirlsLab";
+
     public static final String ADDRESS = "http://gank.io/api/data/%E7%A6%8F%E5%88%A9";
     private static GirlsLab sGirlsLab;
     private Context mContext;

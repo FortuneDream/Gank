@@ -3,13 +3,10 @@ package com.gank.simonla.gank.utils.PhotoLibrary;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Looper;
 import android.os.Message;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -26,9 +23,10 @@ public class PhotoLoader {
 
     private static Context sContext;
     private static final String B_SEND_RESPONSE = "send";
+    private static final int LOADING = 3;
     private static final int LOAD_ERROR = 0;
     private static final int LOAD_RIGHT = 1;
-    private static ImageView imageView;
+    private static ImageView sImageView;
     private static int sResLoad;
     private static int sResFail;
 
@@ -45,8 +43,8 @@ public class PhotoLoader {
     }
 
     public static void open(final String url, final ImageView iv) {
-        imageView = iv;
-        imageView.setImageResource(sResLoad);
+        sImageView = iv;
+        sImageView.setImageResource(sResLoad);
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -76,7 +74,7 @@ public class PhotoLoader {
 
     private static Bitmap getHttpBitmap(final String address, final DrawableCallbackListener listener) {
         if (address == null) {
-            imageView.setImageResource(sResLoad);
+            sImageView.setImageResource(sResLoad);
         } else {
             final int a = address.hashCode();
             if (getBitmapFromNative(a) != null) {
@@ -166,10 +164,17 @@ public class PhotoLoader {
             switch (message.what) {
                 case LOAD_RIGHT:
                     Bitmap bitmap = message.getData().getParcelable(B_SEND_RESPONSE);
-                    imageView.setImageBitmap(bitmap);
+                    sImageView.setImageBitmap(bitmap);
                 case LOAD_ERROR:
-                    //  imageView.setImageResource(R.drawable.fail_load);
+                    //  sImageView.setImageResource(R.drawable.fail_load);
             }
         }
     };
+
+    public interface DrawableCallbackListener {
+        void onBitmapFinish(Bitmap response);
+
+        void onError(Exception e);
+    }
+
 }

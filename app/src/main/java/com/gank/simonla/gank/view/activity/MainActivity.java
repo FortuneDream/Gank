@@ -1,24 +1,34 @@
-package com.gank.simonla.gank.view;
+package com.gank.simonla.gank.view.activity;
 
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.os.Handler;
+import android.os.Message;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.gank.simonla.gank.R;
 import com.gank.simonla.gank.bean.Girls;
 import com.gank.simonla.gank.bean.GirlsLab;
+import com.gank.simonla.gank.view.adapter.GirlsAdapter;
 
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final String TAG = "MainActivity";
+    public static final int FINISH = 0;
     private Toolbar mToolbar;
     private ArrayList<Girls.ResultsBean> mGirls;
+    private RecyclerView mRecyclerView;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
+    private GirlsAdapter mGirlsAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,13 +36,28 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         initView();
         getGirlsFormLab();
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+    }
+
+    private void setRecyclerView() {
+
+        mRecyclerView.setAdapter(mGirlsAdapter = new GirlsAdapter(mGirls));
+        mGirlsAdapter.setOnItemClickListener(new GirlsAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position) {
+                //TODO
+            }
+        });
     }
 
     private void getGirlsFormLab() {
         GirlsLab.get(MainActivity.this).getGirlsFromWeb(10, 1, new GirlsLab.FinishListener() {
             @Override
             public void onFinish() {
-                mGirls = GirlsLab.get(MainActivity.this).getGirls();
+                Message message = new Message();
+                message.what = FINISH;
+                sHandler.sendMessage(message);
+
             }
         });
     }
@@ -40,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
     private void initView() {
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
+        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.srw_girls);
+        mRecyclerView = (RecyclerView) findViewById(R.id.rv_girls);
     }
 
     @Override
@@ -64,4 +91,13 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private Handler sHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case FINISH:
+                    mGirls = GirlsLab.get(MainActivity.this).getGirls();
+                    setRecyclerView();
+            }
+        }
+    };
 }
