@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 import android.widget.ImageView;
 
 import java.io.ByteArrayOutputStream;
@@ -23,7 +24,6 @@ public class PhotoLoader {
 
     private static Context sContext;
     private static final String B_SEND_RESPONSE = "send";
-    private static final int LOADING = 3;
     private static final int LOAD_ERROR = 0;
     private static final int LOAD_RIGHT = 1;
     private static ImageView sImageView;
@@ -78,13 +78,8 @@ public class PhotoLoader {
         } else {
             final int a = address.hashCode();
             if (getBitmapFromNative(a) != null) {
-                if (listener != null) {
-                    listener.onBitmapFinish(getBitmapFromNative(a));
-                }
+                listener.onBitmapFinish(getBitmapFromNative(a));
             } else {
-                //  new Thread(new Runnable() {
-                //    @Override
-                //  public void run() {
                 HttpURLConnection connection = null;
                 try {
                     URL url = new URL(address);
@@ -110,8 +105,6 @@ public class PhotoLoader {
                     }
                 }
             }
-            //  }).start();
-//        }
         }
         return null;
     }

@@ -3,10 +3,12 @@ package com.gank.simonla.gank.view.activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.design.widget.SwipeDismissBehavior;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -16,6 +18,7 @@ import android.view.View;
 import com.gank.simonla.gank.R;
 import com.gank.simonla.gank.bean.Girls;
 import com.gank.simonla.gank.bean.GirlsLab;
+import com.gank.simonla.gank.utils.SpacesItemDecoration;
 import com.gank.simonla.gank.view.adapter.GirlsAdapter;
 
 import java.util.ArrayList;
@@ -36,11 +39,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         initView();
         getGirlsFormLab();
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        //mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        mRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+        SpacesItemDecoration decoration = new SpacesItemDecoration(16);
+        mRecyclerView.addItemDecoration(decoration);
     }
 
     private void setRecyclerView() {
-
         mRecyclerView.setAdapter(mGirlsAdapter = new GirlsAdapter(mGirls));
         mGirlsAdapter.setOnItemClickListener(new GirlsAdapter.OnItemClickListener() {
             @Override
@@ -57,7 +62,6 @@ public class MainActivity extends AppCompatActivity {
                 Message message = new Message();
                 message.what = FINISH;
                 sHandler.sendMessage(message);
-
             }
         });
     }
@@ -87,7 +91,6 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_settings) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 

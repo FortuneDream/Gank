@@ -40,12 +40,16 @@ public class GirlsAdapter extends RecyclerView.Adapter<GirlsAdapter.ViewHolder> 
         TextView name = holder.mName;
         ImageView photo = holder.mPhoto;
         PhotoLoader.open(girl.getUrl(), photo);
-        name.setText(girl.getWho());
+       // name.setText(girl.getWho());
     }
 
     @Override
     public int getItemCount() {
-        return mGirlsList.size();
+        if (mGirlsList != null) {
+            return mGirlsList.size();
+        } else {
+            return 0;
+        }
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
