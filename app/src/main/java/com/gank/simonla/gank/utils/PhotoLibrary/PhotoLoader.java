@@ -27,7 +27,6 @@ public class PhotoLoader {
     private static int sResLoad;
     private static int sResFail;
     private static int sCompressionRatio = 100;
-    public static int mPos;
 
     public static void init(Context context) {
         sContext = context;
@@ -45,8 +44,7 @@ public class PhotoLoader {
         sCompressionRatio = compressionRatio;
     }
 
-    public static void open(final String url, final ImageView iv, final int pos) {
-        mPos = pos;
+    public static void open(final String url, final ImageView iv) {
         new Thread(new Runnable() {
             @Override
             public void run() {

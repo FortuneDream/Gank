@@ -75,19 +75,12 @@ public class GirlsLab {
                 girl.setUrl(jsonObject.getString("url"));
                 girl.setType(jsonObject.getString("type"));
                 girl.setWho(jsonObject.getString("who"));
-                girl.setSource(jsonObject.getString("source"));
                 girl.setUsed(jsonObject.getBoolean("used"));
                 AddGirl(girl);
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
-    }
-
-    public interface FinishListener {
-        void onFinish();
-
-        void onError(Exception e);
     }
 
     public void AddGirl(Girls.ResultsBean resultsBean) {
@@ -108,5 +101,11 @@ public class GirlsLab {
             }
         }
         return isReplicate;
+    }
+
+    public interface FinishListener {
+        void onFinish();
+
+        void onError(Exception e);
     }
 }

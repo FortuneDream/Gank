@@ -27,16 +27,15 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final String TAG = "MainActivity";
     public static final int ERROR = 1;
     public static final int FINISH = 0;
+    public static final int COUNT = 10;
     private Toolbar mToolbar;
     private ArrayList<Girls.ResultsBean> mGirls;
     private RecyclerView mRecyclerView;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private GirlsAdapter mGirlsAdapter;
     private ProgressBar mProgressBar;
-    private String mError;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getGirlsFormLab() {
-        GirlsLab.get(MainActivity.this).getGirlsFromWeb(20, 1, new GirlsLab.FinishListener() {
+        GirlsLab.get(MainActivity.this).getGirlsFromWeb(COUNT, 1, new GirlsLab.FinishListener() {
             @Override
             public void onFinish() {
                 Message message = new Message();
@@ -74,7 +73,6 @@ public class MainActivity extends AppCompatActivity {
                 Message message = new Message();
                 message.what = ERROR;
                 sHandler.sendMessage(message);
-                mError = e.toString();
             }
         });
     }
@@ -117,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
                     mProgressBar.setVisibility(View.GONE);
                     mGirlsAdapter.notifyDataSetChanged();
                 case ERROR:
-                    Toast.makeText(MainActivity.this, "出现错误: " + mError, Toast.LENGTH_SHORT).show();
+                   // Toast.makeText(MainActivity.this, "出现错误: " + mError, Toast.LENGTH_SHORT).show();
             }
         }
     };

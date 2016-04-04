@@ -21,7 +21,6 @@ import java.util.ArrayList;
 public class GirlsAdapter extends RecyclerView.Adapter<GirlsAdapter.ViewHolder> {
 
     private ArrayList<Girls.ResultsBean> mGirlsList;
-    public static final String TAG = "GirlsAdapter";
     private OnItemClickListener mOnItemClickListener;
 
     public GirlsAdapter(ArrayList<Girls.ResultsBean> girlsList) {
@@ -39,12 +38,10 @@ public class GirlsAdapter extends RecyclerView.Adapter<GirlsAdapter.ViewHolder> 
     public void onBindViewHolder(ViewHolder holder, final int position) {
         CardView cardView = holder.mCardView;
         ImageView photo = holder.mPhoto;
-        Log.d(TAG, "onBindViewHolder: "+position);
-        PhotoLoader.open(mGirlsList.get(position).getUrl(), photo, position);
+        PhotoLoader.open(mGirlsList.get(position).getUrl(), photo);
         photo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d(TAG, "onClick: " + position);
             }
         });
        // name.setText(girl.getWho());
