@@ -3,6 +3,7 @@ package com.gank.simonla.gank.bean;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 
 import com.gank.simonla.gank.utils.HttpUtil;
 
@@ -11,13 +12,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 /**
  * Created by asus on 2016/4/3.
  */
 public class GirlsLab {
-
-    public static final String TAG = "GirlsLab";
 
     public static final String ADDRESS = "http://gank.io/api/data/%E7%A6%8F%E5%88%A9";
     private static GirlsLab sGirlsLab;
@@ -53,6 +53,9 @@ public class GirlsLab {
             @Override
             public void onError(Exception e) {
                 e.printStackTrace();
+                if (listener != null) {
+                    listener.onError(e);
+                }
             }
         });
     }
@@ -74,14 +77,36 @@ public class GirlsLab {
                 girl.setWho(jsonObject.getString("who"));
                 girl.setSource(jsonObject.getString("source"));
                 girl.setUsed(jsonObject.getBoolean("used"));
-                mGirls.add(girl);
+                AddGirl(girl);
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
-    public interface FinishListener{
+    public interface FinishListener {
         void onFinish();
+
+        void onError(Exception e);
+    }
+
+    public void AddGirl(Girls.ResultsBean resultsBean) {
+        if (!checkIsReplicate(resultsBean)) {
+            mGirls.add(resultsBean);
+        }
+    }
+
+    public void cleanAll() {
+        mGirls.clear();
+    }
+
+    public Boolean checkIsReplicate(Girls.ResultsBean resultsBean) {
+        Boolean isReplicate = false;
+        for (int i = 0; i < mGirls.size(); i++) {
+            if (Objects.equals(resultsBean.get_id(), mGirls.get(i).get_id())) {
+                isReplicate = true;
+            }
+        }
+        return isReplicate;
     }
 }

@@ -6,7 +6,6 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
 import android.widget.ImageView;
 
 import java.io.ByteArrayOutputStream;
@@ -29,6 +28,7 @@ public class PhotoLoader {
     private static ImageView sImageView;
     private static int sResLoad;
     private static int sResFail;
+    private static int sCompressionRatio = 100;
 
     public static void init(Context context) {
         sContext = context;
@@ -40,6 +40,10 @@ public class PhotoLoader {
 
     public static void setFailDefault(int res) {
         sResFail = res;
+    }
+
+    public static void setCompressionRatio(int compressionRatio){
+        sCompressionRatio = compressionRatio;
     }
 
     public static void open(final String url, final ImageView iv) {
@@ -112,7 +116,7 @@ public class PhotoLoader {
     private static void saveFile(int name, Bitmap bitmap) {
         FileOutputStream outputStream = null;
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 10, out);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 20, out);
         byte[] result = out.toByteArray();
         try {
             out.close();

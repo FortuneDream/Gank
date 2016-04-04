@@ -14,6 +14,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.gank.simonla.gank.R;
 import com.gank.simonla.gank.bean.Girls;
@@ -26,26 +28,28 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     public static final String TAG = "MainActivity";
+    public static final int ERROR = 1;
     public static final int FINISH = 0;
     private Toolbar mToolbar;
     private ArrayList<Girls.ResultsBean> mGirls;
     private RecyclerView mRecyclerView;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private GirlsAdapter mGirlsAdapter;
+    private ProgressBar mProgressBar;
+    private String mError;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        initView();
         getGirlsFormLab();
-        //mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        mRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
-        SpacesItemDecoration decoration = new SpacesItemDecoration(16);
-        mRecyclerView.addItemDecoration(decoration);
+        initView();
     }
 
     private void setRecyclerView() {
+        mRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+        SpacesItemDecoration decoration = new SpacesItemDecoration(16);
+        mRecyclerView.addItemDecoration(decoration);
         mRecyclerView.setAdapter(mGirlsAdapter = new GirlsAdapter(mGirls));
         mGirlsAdapter.setOnItemClickListener(new GirlsAdapter.OnItemClickListener() {
             @Override
@@ -63,12 +67,21 @@ public class MainActivity extends AppCompatActivity {
                 message.what = FINISH;
                 sHandler.sendMessage(message);
             }
+
+            @Override
+            public void onError(Exception e) {
+                Message message = new Message();
+                message.what = ERROR;
+                sHandler.sendMessage(message);
+                mError = e.toString();
+            }
         });
     }
 
     private void initView() {
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
+        mProgressBar = (ProgressBar) findViewById(R.id.pb_main);
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.srw_girls);
         mRecyclerView = (RecyclerView) findViewById(R.id.rv_girls);
     }
@@ -100,6 +113,10 @@ public class MainActivity extends AppCompatActivity {
                 case FINISH:
                     mGirls = GirlsLab.get(MainActivity.this).getGirls();
                     setRecyclerView();
+                    mProgressBar.setVisibility(View.GONE);
+                    mGirlsAdapter.notifyDataSetChanged();
+                case ERROR:
+                    Toast.makeText(MainActivity.this, "出现错误: " + mError, Toast.LENGTH_SHORT).show();
             }
         }
     };
