@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private GirlsAdapter mGirlsAdapter;
     private ProgressBar mProgressBar;
+    private int mPage = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getGirlsFormLab() {
-        GirlsLab.get(MainActivity.this).getGirlsFromWeb(COUNT, 1, new GirlsLab.FinishListener() {
+        GirlsLab.get(MainActivity.this).getGirlsFromWeb(COUNT, mPage, new GirlsLab.FinishListener() {
             @Override
             public void onFinish() {
                 Message message = new Message();
@@ -113,7 +114,6 @@ public class MainActivity extends AppCompatActivity {
                     mGirls = GirlsLab.get(MainActivity.this).getGirls();
                     setRecyclerView();
                     mProgressBar.setVisibility(View.GONE);
-                    mGirlsAdapter.notifyDataSetChanged();
                 case ERROR:
                    // Toast.makeText(MainActivity.this, "出现错误: " + mError, Toast.LENGTH_SHORT).show();
             }
