@@ -4,8 +4,10 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 import android.widget.ImageView;
 
 import java.io.ByteArrayOutputStream;
@@ -22,13 +24,10 @@ import java.net.URL;
 public class PhotoLoader {
 
     private static Context sContext;
-    private static final String B_SEND_RESPONSE = "send";
-    private static final int LOAD_ERROR = 0;
-    private static final int LOAD_RIGHT = 1;
-    private static ImageView sImageView;
     private static int sResLoad;
     private static int sResFail;
     private static int sCompressionRatio = 100;
+    public static int mPos;
 
     public static void init(Context context) {
         sContext = context;
@@ -42,32 +41,28 @@ public class PhotoLoader {
         sResFail = res;
     }
 
-    public static void setCompressionRatio(int compressionRatio){
+    public static void setCompressionRatio(int compressionRatio) {
         sCompressionRatio = compressionRatio;
     }
 
-    public static void open(final String url, final ImageView iv) {
-        sImageView = iv;
-        sImageView.setImageResource(sResLoad);
+    public static void open(final String url, final ImageView iv, final int pos) {
+        mPos = pos;
         new Thread(new Runnable() {
             @Override
             public void run() {
-                getHttpBitmap(url, new DrawableCallbackListener() {
+                getHttpBitmap(url, iv,new DrawableCallbackListener() {
                             @Override
-                            public void onBitmapFinish(Bitmap response) {
-                                Bundle bundle = new Bundle();
-                                bundle.putParcelable(B_SEND_RESPONSE, response);
-                                Message message = new Message();
-                                message.setData(bundle);
-                                message.what = LOAD_RIGHT;
-                                mHandler.sendMessage(message);
+                            public void onBitmapFinish(final Bitmap response) {
+                                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        iv.setImageBitmap(response);
+                                    }
+                                });
                             }
 
                             @Override
                             public void onError(Exception e) {
-                                Message message = new Message();
-                                message.what = LOAD_ERROR;
-                                mHandler.sendMessage(message);
                                 e.printStackTrace();
                             }
                         }
@@ -76,14 +71,20 @@ public class PhotoLoader {
         }).start();
     }
 
-    private static Bitmap getHttpBitmap(final String address, final DrawableCallbackListener listener) {
+    private static Bitmap getHttpBitmap(final String address, final ImageView iv, final DrawableCallbackListener listener) {
         if (address == null) {
-            sImageView.setImageResource(sResLoad);
+            iv.setImageResource(sResLoad);
         } else {
             final int a = address.hashCode();
             if (getBitmapFromNative(a) != null) {
                 listener.onBitmapFinish(getBitmapFromNative(a));
             } else {
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        iv.setImageResource(sResLoad);
+                    }
+                });
                 HttpURLConnection connection = null;
                 try {
                     URL url = new URL(address);
@@ -155,18 +156,6 @@ public class PhotoLoader {
         }
         return null;
     }
-
-    private static android.os.Handler mHandler = new android.os.Handler(Looper.getMainLooper()) {
-        public void handleMessage(Message message) {
-            switch (message.what) {
-                case LOAD_RIGHT:
-                    Bitmap bitmap = message.getData().getParcelable(B_SEND_RESPONSE);
-                    sImageView.setImageBitmap(bitmap);
-                case LOAD_ERROR:
-                    //  sImageView.setImageResource(R.drawable.fail_load);
-            }
-        }
-    };
 
     public interface DrawableCallbackListener {
         void onBitmapFinish(Bitmap response);

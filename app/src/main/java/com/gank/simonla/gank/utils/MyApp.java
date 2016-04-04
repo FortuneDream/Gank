@@ -15,6 +15,6 @@ public class MyApp extends Application {
         super.onCreate();
         PhotoLoader.init(getApplicationContext());
         PhotoLoader.setLoadDefault(R.drawable.ic_loading);
-        PhotoLoader.setCompressionRatio(50);
+        PhotoLoader.setCompressionRatio(20);
     }
 }

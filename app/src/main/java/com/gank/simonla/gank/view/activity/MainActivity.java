@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setRecyclerView() {
         mRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
+       //  mRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
         SpacesItemDecoration decoration = new SpacesItemDecoration(16);
         mRecyclerView.addItemDecoration(decoration);
         mRecyclerView.setAdapter(mGirlsAdapter = new GirlsAdapter(mGirls));
@@ -60,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getGirlsFormLab() {
-        GirlsLab.get(MainActivity.this).getGirlsFromWeb(10, 1, new GirlsLab.FinishListener() {
+        GirlsLab.get(MainActivity.this).getGirlsFromWeb(20, 1, new GirlsLab.FinishListener() {
             @Override
             public void onFinish() {
                 Message message = new Message();
