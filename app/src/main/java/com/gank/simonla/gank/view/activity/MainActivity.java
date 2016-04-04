@@ -1,5 +1,6 @@
 package com.gank.simonla.gank.view.activity;
 
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -20,6 +21,7 @@ import android.widget.Toast;
 import com.gank.simonla.gank.R;
 import com.gank.simonla.gank.bean.Girls;
 import com.gank.simonla.gank.bean.GirlsLab;
+import com.gank.simonla.gank.utils.OnVerticalScrollListener;
 import com.gank.simonla.gank.utils.SpacesItemDecoration;
 import com.gank.simonla.gank.view.adapter.GirlsAdapter;
 
@@ -30,13 +32,14 @@ public class MainActivity extends AppCompatActivity {
     public static final int ERROR = 1;
     public static final int FINISH = 0;
     public static final int COUNT = 10;
+    public static final int UPDATE = 2;
     private Toolbar mToolbar;
     private ArrayList<Girls.ResultsBean> mGirls;
     private RecyclerView mRecyclerView;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private GirlsAdapter mGirlsAdapter;
-    private ProgressBar mProgressBar;
     private int mPage = 1;
+    private ProgressDialog mProgressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +47,29 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         getGirlsFormLab();
         initView();
+        showProgressDialog();
+        mRecyclerView.addOnScrollListener(new OnVerticalScrollListener() {
+            @Override
+            public void onScrolledToBottom() {
+                Toast.makeText(MainActivity.this, ""+mPage, Toast.LENGTH_SHORT).show();
+                super.onScrolledToBottom();
+                mPage++;
+                //showProgressDialog();
+                GirlsLab.get(MainActivity.this).getGirlsFromWeb(COUNT, mPage, new GirlsLab.FinishListener() {
+                    @Override
+                    public void onFinish() {
+                        Message message = new Message();
+                        message.what = UPDATE;
+                        sHandler.sendMessage(message);
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+
+                    }
+                });
+            }
+        });
     }
 
     private void setRecyclerView() {
@@ -81,7 +107,6 @@ public class MainActivity extends AppCompatActivity {
     private void initView() {
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
-        mProgressBar = (ProgressBar) findViewById(R.id.pb_main);
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.srw_girls);
         mRecyclerView = (RecyclerView) findViewById(R.id.rv_girls);
     }
@@ -91,6 +116,12 @@ public class MainActivity extends AppCompatActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
+    }
+
+    private void showProgressDialog() {
+        mProgressDialog = new ProgressDialog(MainActivity.this);
+        mProgressDialog.setMessage(getString(R.string.loading));
+        mProgressDialog.show();
     }
 
     @Override
@@ -113,9 +144,19 @@ public class MainActivity extends AppCompatActivity {
                 case FINISH:
                     mGirls = GirlsLab.get(MainActivity.this).getGirls();
                     setRecyclerView();
-                    mProgressBar.setVisibility(View.GONE);
+                    mProgressDialog.hide();
                 case ERROR:
                    // Toast.makeText(MainActivity.this, "出现错误: " + mError, Toast.LENGTH_SHORT).show();
+                   // mProgressDialog.hide();
+                case UPDATE:
+                    mGirls = GirlsLab.get(MainActivity.this).getGirls();
+                    if (mGirls != null) {
+                        if (mGirlsAdapter != null) {
+                            for (int i = mGirlsAdapter.getItemCount(); i < mGirlsAdapter.getItemCount() + 10; i++) {
+                                mGirlsAdapter.notifyItemChanged(mPage);
+                            }
+                        }
+                    }
             }
         }
     };
