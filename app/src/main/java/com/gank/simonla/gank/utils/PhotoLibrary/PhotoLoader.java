@@ -3,16 +3,17 @@ package com.gank.simonla.gank.utils.PhotoLibrary;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -23,13 +24,21 @@ import java.net.URL;
  */
 public class PhotoLoader {
 
+    public static final String TAG = "PhotoLoader";
     private static Context sContext;
     private static int sResLoad;
     private static int sResFail;
     private static int sCompressionRatio = 100;
+    private static boolean sIsFailTouchToReload = false;
 
+
+    //链式调用什么的会有的
     public static void init(Context context) {
         sContext = context;
+    }
+
+    public static void setIsFailTouchToReload(boolean isFailTouchToReload) {
+        sIsFailTouchToReload = isFailTouchToReload;
     }
 
     public static void setLoadDefault(int res) {
@@ -48,7 +57,7 @@ public class PhotoLoader {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                getHttpBitmap(url, iv,new DrawableCallbackListener() {
+                getHttpBitmap(url, iv, new DrawableCallbackListener() {
                             @Override
                             public void onBitmapFinish(final Bitmap response) {
                                 new Handler(Looper.getMainLooper()).post(new Runnable() {
@@ -60,8 +69,28 @@ public class PhotoLoader {
                             }
 
                             @Override
-                            public void onError(Exception e) {
+                            public void onError(final Exception e) {
                                 e.printStackTrace();
+                                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        iv.setImageResource(sResFail);
+                                        reLoad();
+                                    }
+
+                                    private void reLoad() {
+                                        if (sIsFailTouchToReload) {
+                                            iv.setOnClickListener(new View.OnClickListener() {
+                                                @Override
+                                                public void onClick(View v) {
+                                                    open(url, iv);
+                                                    Toast.makeText(sContext, "请检查网络", Toast.LENGTH_SHORT).show();
+                                                    Log.d(TAG, "onClick: " + e);
+                                                }
+                                            });
+                                        }
+                                    }
+                                });
                             }
                         }
                 );
@@ -71,7 +100,7 @@ public class PhotoLoader {
 
     private static Bitmap getHttpBitmap(final String address, final ImageView iv, final DrawableCallbackListener listener) {
         if (address == null) {
-            iv.setImageResource(sResLoad);
+            iv.setImageResource(sResFail);
         } else {
             final int a = address.hashCode();
             if (getBitmapFromNative(a) != null) {
@@ -89,8 +118,8 @@ public class PhotoLoader {
                     connection = (HttpURLConnection) url.openConnection();
                     connection.setRequestMethod("GET");
                     connection.setUseCaches(true);
-                    connection.setConnectTimeout(4000);
-                    connection.setReadTimeout(4000);
+                    connection.setConnectTimeout(2000);
+                    connection.setReadTimeout(200);
                     InputStream in = connection.getInputStream();
                     Bitmap response = BitmapFactory.decodeStream(in);
                     saveFile(a, response);
@@ -115,7 +144,7 @@ public class PhotoLoader {
     private static void saveFile(int name, Bitmap bitmap) {
         FileOutputStream outputStream = null;
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 20, out);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, sCompressionRatio, out);
         byte[] result = out.toByteArray();
         try {
             out.close();
@@ -143,14 +172,16 @@ public class PhotoLoader {
         try {
             in = sContext.openFileInput(String.valueOf(name));
             return BitmapFactory.decodeStream(in);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         try {
             if (in != null) {
                 in.close();
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
+            //TODO 获取异常种类进行处理
         }
         return null;
     }
