@@ -69,7 +69,9 @@ public class GirlsAdapter extends RecyclerView.Adapter<GirlsAdapter.ViewHolder> 
             @Override
             public void onBitmapFinish(Bitmap response) {
                 // 当下载完bitmap，把它的比例给记下来
-                mPicRatios.put(url, response.getHeight() / (double) response.getWidth());
+                if (response != null) {
+                    mPicRatios.put(url, response.getHeight() / (double) response.getWidth());
+                }
             }
 
             @Override
