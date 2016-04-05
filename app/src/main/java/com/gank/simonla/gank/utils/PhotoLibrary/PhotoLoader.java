@@ -3,11 +3,8 @@ package com.gank.simonla.gank.utils.PhotoLibrary;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
-import android.util.Log;
 import android.widget.ImageView;
 
 import java.io.ByteArrayOutputStream;
@@ -44,27 +41,38 @@ public class PhotoLoader {
         sCompressionRatio = compressionRatio;
     }
 
-    public static void open(final String url, final ImageView iv) {
+    // 重载一个不要外部处理的，就和你原来一样了
+    public static void open(String url, ImageView iv) {
+        open(url, iv, null);
+    }
+
+    // 你应该放一个回调出去……否则下载完了我想干点别的事情都不行了
+    public static void open(final String url, final ImageView iv, final DrawableCallbackListener listener) {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 getHttpBitmap(url, iv,new DrawableCallbackListener() {
+                    @Override
+                    public void onBitmapFinish(final Bitmap response) {
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
                             @Override
-                            public void onBitmapFinish(final Bitmap response) {
-                                new Handler(Looper.getMainLooper()).post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        iv.setImageBitmap(response);
-                                    }
-                                });
+                            public void run() {
+                                // 如果tag对应上了
+                                if (iv.getTag() == url) {
+                                    iv.setImageBitmap(response);
+                                    // 让外面也可以自己添加额外的操作
+                                    if (listener != null) listener.onBitmapFinish(response);
+                                }
                             }
+                        });
+                    }
 
-                            @Override
-                            public void onError(Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                );
+                    @Override
+                    public void onError(Exception e) {
+                        e.printStackTrace();
+                        if (listener != null) listener.onError(e);
+                    }
+                });
             }
         }).start();
     }
