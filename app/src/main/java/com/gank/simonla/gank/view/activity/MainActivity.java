@@ -64,7 +64,6 @@ public class MainActivity extends AppCompatActivity {
                         GirlsLab.get(MainActivity.this).getGirlsFromWeb(COUNT, mPage, new GirlsLab.FinishListener() {
                             @Override
                             public void onFinish() {
-                                Log.d("MainActivity", "onFinish: more!!!");
                                 Message message = new Message();
                                 message.what = UPDATE;
                                 sHandler.sendMessage(message);
@@ -110,8 +109,8 @@ public class MainActivity extends AppCompatActivity {
         // mRecyclerView.setLayoutManager(mLayoutManager);
         //mLayoutManager= new LinearLayoutManager(MainActivity.this);
         mRecyclerView.setLayoutManager(mStaggeredGridLayoutManager);
-        //SpacesItemDecoration decoration = new SpacesItemDecoration(16);
-        //mRecyclerView.addItemDecoration(decoration);
+        SpacesItemDecoration decoration = new SpacesItemDecoration(16);
+        mRecyclerView.addItemDecoration(decoration);
         mRecyclerView.setAdapter(mGirlsAdapter = new GirlsAdapter(mGirls));
         mGirlsAdapter.setOnItemClickListener(new GirlsAdapter.OnItemClickListener() {
             @Override
@@ -181,6 +180,7 @@ public class MainActivity extends AppCompatActivity {
                     setRecyclerView();
                     mProgressDialog.hide();
                 case ERROR:
+                    mIsLoading = false;
                     // Toast.makeText(MainActivity.this, "出现错误: " + mError, Toast.LENGTH_SHORT).show();
                     // mProgressDialog.hide();
                 case UPDATE:
