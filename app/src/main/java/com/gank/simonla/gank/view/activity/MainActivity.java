@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
@@ -36,7 +37,8 @@ public class MainActivity extends AppCompatActivity {
     private GirlsAdapter mGirlsAdapter;
     private int mPage = 1;
     private ProgressDialog mProgressDialog;
-    private boolean mIsLoading;
+    private boolean mIsLoading = false;
+    private StaggeredGridLayoutManager mStaggeredGridLayoutManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,24 +47,40 @@ public class MainActivity extends AppCompatActivity {
         getGirlsFormLab();
         initView();
         showProgressDialog();
-       /* mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
+
+        mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                int[] into = new int[10];
+                into = ((StaggeredGridLayoutManager) mStaggeredGridLayoutManager).findLastVisibleItemPositions(into);
+                int lastVisibleItem = into[0];
+                int totalItemCount = mStaggeredGridLayoutManager.getItemCount();
+                if (lastVisibleItem >= totalItemCount - 6 && dy > 0) {
+                    if (!mIsLoading) {
+                        mPage++;
+                        //showProgressDialog();
+                        mIsLoading = true;
+                        GirlsLab.get(MainActivity.this).getGirlsFromWeb(COUNT, mPage, new GirlsLab.FinishListener() {
+                            @Override
+                            public void onFinish() {
+                                Log.d("MainActivity", "onFinish: more!!!");
+                                Message message = new Message();
+                                message.what = UPDATE;
+                                sHandler.sendMessage(message);
+                            }
 
-                visibleItemCount = mRecyclerView.getLayoutManager().getChildCount();
-                totalItemCount = mRecyclerView.getLayoutManager().getItemCount();
-                pastVisibleItems = mRecyclerView.getLayoutManager().findF;
+                            @Override
+                            public void onError(Exception e) {
 
-                if (mIsLoading) {
-                    if ( (visibleItemCount + pastVisibleItems) >= totalItemCount) {
-                        // 判断点
-                        mIsLoading = false;
-                        Log.v("...", "Last Item Wow !");
+                            }
+                        });
                     }
                 }
             }
-        });*/
-        mRecyclerView.addOnScrollListener(new OnVerticalScrollListener() {
+        });
+
+/*        mRecyclerView.addOnScrollListener(new OnVerticalScrollListener() {
             @Override
             public void onScrolledToBottom() {
                 super.onScrolledToBottom();
@@ -84,14 +102,16 @@ public class MainActivity extends AppCompatActivity {
                     });
                 }
             }
-        });
+        });*/
     }
 
     private void setRecyclerView() {
-        mRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
-        //  mRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
-        SpacesItemDecoration decoration = new SpacesItemDecoration(16);
-        mRecyclerView.addItemDecoration(decoration);
+        mStaggeredGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        // mRecyclerView.setLayoutManager(mLayoutManager);
+        //mLayoutManager= new LinearLayoutManager(MainActivity.this);
+        mRecyclerView.setLayoutManager(mStaggeredGridLayoutManager);
+        //SpacesItemDecoration decoration = new SpacesItemDecoration(16);
+        //mRecyclerView.addItemDecoration(decoration);
         mRecyclerView.setAdapter(mGirlsAdapter = new GirlsAdapter(mGirls));
         mGirlsAdapter.setOnItemClickListener(new GirlsAdapter.OnItemClickListener() {
             @Override
