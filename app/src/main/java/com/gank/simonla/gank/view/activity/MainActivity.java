@@ -4,10 +4,8 @@ import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.design.widget.SwipeDismissBehavior;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
@@ -15,8 +13,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.gank.simonla.gank.R;
 import com.gank.simonla.gank.bean.Girls;
@@ -40,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     private GirlsAdapter mGirlsAdapter;
     private int mPage = 1;
     private ProgressDialog mProgressDialog;
+    private boolean mIsLoading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,33 +45,51 @@ public class MainActivity extends AppCompatActivity {
         getGirlsFormLab();
         initView();
         showProgressDialog();
+       /* mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+
+                visibleItemCount = mRecyclerView.getLayoutManager().getChildCount();
+                totalItemCount = mRecyclerView.getLayoutManager().getItemCount();
+                pastVisibleItems = mRecyclerView.getLayoutManager().findF;
+
+                if (mIsLoading) {
+                    if ( (visibleItemCount + pastVisibleItems) >= totalItemCount) {
+                        // 判断点
+                        mIsLoading = false;
+                        Log.v("...", "Last Item Wow !");
+                    }
+                }
+            }
+        });*/
         mRecyclerView.addOnScrollListener(new OnVerticalScrollListener() {
             @Override
             public void onScrolledToBottom() {
-                Toast.makeText(MainActivity.this, ""+mPage, Toast.LENGTH_SHORT).show();
                 super.onScrolledToBottom();
-                mPage++;
-                //showProgressDialog();
-                GirlsLab.get(MainActivity.this).getGirlsFromWeb(COUNT, mPage, new GirlsLab.FinishListener() {
-                    @Override
-                    public void onFinish() {
-                        Message message = new Message();
-                        message.what = UPDATE;
-                        sHandler.sendMessage(message);
-                    }
+                if (!mIsLoading) {
+                    mPage++;
+                    //showProgressDialog();
+                    GirlsLab.get(MainActivity.this).getGirlsFromWeb(COUNT, mPage, new GirlsLab.FinishListener() {
+                        @Override
+                        public void onFinish() {
+                            Message message = new Message();
+                            message.what = UPDATE;
+                            sHandler.sendMessage(message);
+                        }
 
-                    @Override
-                    public void onError(Exception e) {
+                        @Override
+                        public void onError(Exception e) {
 
-                    }
-                });
+                        }
+                    });
+                }
             }
         });
     }
 
     private void setRecyclerView() {
         mRecyclerView.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL));
-       //  mRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+        //  mRecyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
         SpacesItemDecoration decoration = new SpacesItemDecoration(16);
         mRecyclerView.addItemDecoration(decoration);
         mRecyclerView.setAdapter(mGirlsAdapter = new GirlsAdapter(mGirls));
@@ -146,8 +161,8 @@ public class MainActivity extends AppCompatActivity {
                     setRecyclerView();
                     mProgressDialog.hide();
                 case ERROR:
-                   // Toast.makeText(MainActivity.this, "出现错误: " + mError, Toast.LENGTH_SHORT).show();
-                   // mProgressDialog.hide();
+                    // Toast.makeText(MainActivity.this, "出现错误: " + mError, Toast.LENGTH_SHORT).show();
+                    // mProgressDialog.hide();
                 case UPDATE:
                     mGirls = GirlsLab.get(MainActivity.this).getGirls();
                     if (mGirls != null) {
@@ -157,6 +172,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     }
+                    mIsLoading = false;
             }
         }
     };
