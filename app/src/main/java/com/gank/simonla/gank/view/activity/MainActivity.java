@@ -46,20 +46,18 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         getGirlsFormLab();
         initView();
-        showProgressDialog();
 
         mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-                int[] into = new int[10];
-                into = ((StaggeredGridLayoutManager) mStaggeredGridLayoutManager).findLastVisibleItemPositions(into);
-                int lastVisibleItem = into[0];
+                int[] into = new int[2];
+                into = mStaggeredGridLayoutManager.findLastVisibleItemPositions(into);
+                int lastVisibleItem = Math.max(into[0], into[1]);
                 int totalItemCount = mStaggeredGridLayoutManager.getItemCount();
                 if (lastVisibleItem >= totalItemCount - 6 && dy > 0) {
                     if (!mIsLoading) {
                         mPage++;
-                        //showProgressDialog();
                         mIsLoading = true;
                         GirlsLab.get(MainActivity.this).getGirlsFromWeb(COUNT, mPage, new GirlsLab.FinishListener() {
                             @Override
@@ -78,36 +76,10 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
-/*        mRecyclerView.addOnScrollListener(new OnVerticalScrollListener() {
-            @Override
-            public void onScrolledToBottom() {
-                super.onScrolledToBottom();
-                if (!mIsLoading) {
-                    mPage++;
-                    //showProgressDialog();
-                    GirlsLab.get(MainActivity.this).getGirlsFromWeb(COUNT, mPage, new GirlsLab.FinishListener() {
-                        @Override
-                        public void onFinish() {
-                            Message message = new Message();
-                            message.what = UPDATE;
-                            sHandler.sendMessage(message);
-                        }
-
-                        @Override
-                        public void onError(Exception e) {
-
-                        }
-                    });
-                }
-            }
-        });*/
     }
 
     private void setRecyclerView() {
         mStaggeredGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
-        // mRecyclerView.setLayoutManager(mLayoutManager);
-        //mLayoutManager= new LinearLayoutManager(MainActivity.this);
         mRecyclerView.setLayoutManager(mStaggeredGridLayoutManager);
         SpacesItemDecoration decoration = new SpacesItemDecoration(16);
         mRecyclerView.addItemDecoration(decoration);
@@ -121,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getGirlsFormLab() {
+        showProgressDialog();
         GirlsLab.get(MainActivity.this).getGirlsFromWeb(COUNT, mPage, new GirlsLab.FinishListener() {
             @Override
             public void onFinish() {
