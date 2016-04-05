@@ -151,11 +151,9 @@ public class MainActivity extends AppCompatActivity {
                 case FINISH:
                     mGirls = GirlsLab.get(MainActivity.this).getGirls();
                     setRecyclerView();
-                    mProgressDialog.hide();
+                    mProgressDialog.cancel();
                 case ERROR:
                     mIsLoading = false;
-                    // Toast.makeText(MainActivity.this, "出现错误: " + mError, Toast.LENGTH_SHORT).show();
-                    // mProgressDialog.hide();
                 case UPDATE:
                     mGirls = GirlsLab.get(MainActivity.this).getGirls();
                     if (mGirls != null) {

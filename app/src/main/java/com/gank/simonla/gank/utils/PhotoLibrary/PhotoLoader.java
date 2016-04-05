@@ -103,7 +103,6 @@ public class PhotoLoader {
             iv.setImageResource(sResFail);
         } else {
             final int a = address.hashCode();
-           // Bitmap bitmap = BitmapFactory.decodeResource(sContext.getResources(), R.drawable.ic_loading);
             if (getBitmapFromNative(a) !=null) {
                 if (listener != null) {
                     listener.onBitmapFinish(getBitmapFromNative(a));
@@ -185,18 +184,22 @@ public class PhotoLoader {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        //return BitmapFactory.decodeResource(sContext.getResources(), R.drawable.ic_loading);
         return null;
     }
 
     private static void reLoad(final ImageView iv, final String url) {
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                iv.setImageResource(sResFail);
+            }
+        });
         iv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
                     public void run() {
-                        iv.setImageResource(sResFail);
                         Toast.makeText(sContext, "重新加载中", Toast.LENGTH_SHORT).show();
                         loadAgain();
                     }
