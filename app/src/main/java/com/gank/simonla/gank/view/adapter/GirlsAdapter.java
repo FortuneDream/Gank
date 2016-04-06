@@ -85,7 +85,6 @@ public class GirlsAdapter extends RecyclerView.Adapter<GirlsAdapter.ViewHolder> 
             public void onClick(View v) {
             }
         });
-        // name.setText(girl.getWho());
     }
 
     @Override

@@ -33,6 +33,11 @@ public class PhotoLoader {
     private static int sResLoad;
     private static int sResFail;
     private static int sCompressionRatio = 100;
+    private static int sResamplingRate = 1;
+
+    public static void setResamplingRate(int resamplingRate) {
+        sResamplingRate = resamplingRate;
+    }
 
     public static void setIsFailTouchToReload(boolean isFailTouchToReload) {
         sIsFailTouchToReload = isFailTouchToReload;
@@ -123,7 +128,10 @@ public class PhotoLoader {
                     connection.setConnectTimeout(10000);
                     connection.setReadTimeout(10000);
                     InputStream in = connection.getInputStream();
-                    Bitmap response = BitmapFactory.decodeStream(in);
+                    BitmapFactory.Options options = new BitmapFactory.Options();
+                    options.inSampleSize = sResamplingRate;
+                  //  options.inPreferredConfig = Bitmap.Config.ARGB_4444;
+                    Bitmap response = BitmapFactory.decodeStream(in, null, options);
                     in.close();
                     if (listener != null) {
                         saveFile(a, response);

@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
                 into = mStaggeredGridLayoutManager.findLastVisibleItemPositions(into);
                 int lastVisibleItem = Math.max(into[0], into[1]);
                 int totalItemCount = mStaggeredGridLayoutManager.getItemCount();
-                if (lastVisibleItem >= totalItemCount - 6 && dy > 0) {
+                if (lastVisibleItem >= totalItemCount - 8 && dy > 0) {
                     if (!mIsLoading) {
                         mPage++;
                         mIsLoading = true;
