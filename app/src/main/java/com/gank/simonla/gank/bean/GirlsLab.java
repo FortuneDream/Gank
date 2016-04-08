@@ -90,7 +90,9 @@ public class GirlsLab {
     }
 
     public void cleanAll() {
-        mGirls.clear();
+        if (mGirls != null) {
+            mGirls.clear();
+        }
     }
 
     public Boolean checkIsReplicate(Girls.ResultsBean resultsBean) {

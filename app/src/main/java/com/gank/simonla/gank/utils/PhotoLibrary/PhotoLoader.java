@@ -43,6 +43,10 @@ public class PhotoLoader {
         sIsFailTouchToReload = isFailTouchToReload;
     }
 
+    public static Context getContext() {
+        return sContext;
+    }
+
     public static void init(Context context) {
         sContext = context;
     }
@@ -88,13 +92,6 @@ public class PhotoLoader {
                             @Override
                             public void onError(final Exception e) {
                                 e.printStackTrace();
-                                //如果发生错误可以点击重新加载
-                                new Handler(Looper.getMainLooper()).post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        Toast.makeText(sContext, "出现错误，点击重新加载：" + e, Toast.LENGTH_SHORT).show();
-                                    }
-                                });
                                 reLoad(iv, url);
                             }
                         }

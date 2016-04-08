@@ -1,6 +1,7 @@
 package com.gank.simonla.gank.view.activity;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -24,7 +25,7 @@ import com.gank.simonla.gank.view.adapter.GirlsAdapter;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
 
     public static final int ERROR = 1;
     public static final int FINISH = 0;
@@ -46,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         getGirlsFormLab();
         initView();
-
+        mSwipeRefreshLayout.setOnRefreshListener(this);
         mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
@@ -87,7 +88,10 @@ public class MainActivity extends AppCompatActivity {
         mGirlsAdapter.setOnItemClickListener(new GirlsAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position) {
-                //TODO
+                Intent intent = new Intent();
+                intent.setClass(MainActivity.this, DetailedActivity.class);
+                startActivity(intent);
+
             }
         });
     }
@@ -167,4 +171,9 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+
+    @Override
+    public void onRefresh() {
+        mSwipeRefreshLayout.setRefreshing(false);
+    }
 }

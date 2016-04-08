@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.gank.simonla.gank.R;
 import com.gank.simonla.gank.bean.Girls;
@@ -46,7 +47,7 @@ public class GirlsAdapter extends RecyclerView.Adapter<GirlsAdapter.ViewHolder> 
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, final int position) {
+    public void onBindViewHolder(final ViewHolder holder, final int position) {
         final String url = mGirlsList.get(position).getUrl();
         CardView cardView = holder.mCardView;
         final ImageView photo = holder.mPhoto;
@@ -65,6 +66,14 @@ public class GirlsAdapter extends RecyclerView.Adapter<GirlsAdapter.ViewHolder> 
             holder.mPhoto.setLayoutParams(rlp);
         }
 
+        if (mOnItemClickListener != null) {
+            cardView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mOnItemClickListener.onItemClick(holder.itemView, position);
+                }
+            });
+        }
         PhotoLoader.open(url, photo, new PhotoLoader.DrawableCallbackListener() {
             @Override
             public void onBitmapFinish(Bitmap response) {
@@ -79,10 +88,11 @@ public class GirlsAdapter extends RecyclerView.Adapter<GirlsAdapter.ViewHolder> 
 
             }
         });
-
-        photo.setOnClickListener(new View.OnClickListener() {
+        photo.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
-            public void onClick(View v) {
+            public boolean onLongClick(View v) {
+                
+                return false;
             }
         });
     }
@@ -99,6 +109,7 @@ public class GirlsAdapter extends RecyclerView.Adapter<GirlsAdapter.ViewHolder> 
     public class ViewHolder extends RecyclerView.ViewHolder {
         public ImageView mPhoto;
         public CardView mCardView;
+
         public ViewHolder(View itemView) {
             super(itemView);
             mCardView = (CardView) itemView.findViewById(R.id.cv_item_girl);
