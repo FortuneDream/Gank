@@ -68,7 +68,6 @@ public class GirlsLab {
                 JSONObject jsonObject = jsonArray.getJSONObject(i);
                 Girls.ResultsBean girl = new Girls.ResultsBean();
                 girl.set_id(jsonObject.getString("_id"));
-                girl.set_ns(jsonObject.getString("_ns"));
                 girl.setCreatedAt(jsonObject.getString("createdAt"));
                 girl.setDesc(jsonObject.getString("desc"));
                 girl.setPublishedAt(jsonObject.getString("publishedAt"));

@@ -1,22 +1,18 @@
 package com.gank.simonla.gank.utils.PhotoLibrary;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
+import android.support.annotation.Nullable;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.gank.simonla.gank.R;
-
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -175,6 +171,7 @@ public class PhotoLoader {
         }
     }
 
+    @Nullable
     private static Bitmap getBitmapFromNative(int name) {
         FileInputStream in = null;
         try {

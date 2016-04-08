@@ -51,7 +51,6 @@ public class Girls {
 
     public static class ResultsBean {
         private String _id;
-        private String _ns;
         private String createdAt;
         private String desc;
         private String publishedAt;
@@ -66,14 +65,6 @@ public class Girls {
 
         public void set_id(String _id) {
             this._id = _id;
-        }
-
-        public String get_ns() {
-            return _ns;
-        }
-
-        public void set_ns(String _ns) {
-            this._ns = _ns;
         }
 
         public String getCreatedAt() {
