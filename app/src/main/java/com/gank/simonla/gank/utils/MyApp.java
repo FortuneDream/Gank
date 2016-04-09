@@ -17,7 +17,7 @@ public class MyApp extends Application {
         PhotoLoader.setLoadDefault(R.drawable.ic_loading);
         PhotoLoader.setFailDefault(R.drawable.ic_fail);
         PhotoLoader.setCompressionRatio(100);
-        PhotoLoader.setResamplingRate(3);
+        PhotoLoader.setResamplingRate(2);
         PhotoLoader.setIsFailTouchToReload(true);
     }
 }

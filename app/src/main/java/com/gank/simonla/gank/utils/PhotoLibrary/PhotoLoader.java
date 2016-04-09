@@ -6,6 +6,8 @@ import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
+import android.util.Log;
+import android.util.LruCache;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -25,11 +27,14 @@ import java.net.URL;
 public class PhotoLoader {
 
     private static boolean sIsFailTouchToReload = false;
+    public static final String TAG = "PhotoLoader";
+    private static boolean sIsOpenLruCache = true;
     private static Context sContext;
     private static int sResLoad;
     private static int sResFail;
     private static int sCompressionRatio = 100;
     private static int sResamplingRate = 1;
+    private static LruCache<String, Bitmap> mMemoryCache;
 
     public static void setResamplingRate(int resamplingRate) {
         sResamplingRate = resamplingRate;
@@ -45,6 +50,9 @@ public class PhotoLoader {
 
     public static void init(Context context) {
         sContext = context;
+        if (sIsOpenLruCache) {
+            initLruCache();
+        }
     }
 
     public static void setLoadDefault(int res) {
@@ -100,47 +108,66 @@ public class PhotoLoader {
         if (address == null) {
             iv.setImageResource(sResFail);
         } else {
-            final int a = address.hashCode();
-            if (getBitmapFromNative(a) !=null) {
+            final int hashName = address.hashCode();
+            if (mMemoryCache.get(hashName + "") != null) {
                 if (listener != null) {
-                    listener.onBitmapFinish(getBitmapFromNative(a));
+                    listener.onBitmapFinish(mMemoryCache.get(hashName + ""));
+                    Log.d(TAG, "getHttpBitmap: LRUFinish");
                 }
             } else {
-                new Handler(Looper.getMainLooper()).post(new Runnable() {
-                    @Override
-                    public void run() {
-                        iv.setImageResource(sResLoad);
-                    }
-                });
-                HttpURLConnection connection = null;
-                try {
-                    URL url = new URL(address);
-                    connection = (HttpURLConnection) url.openConnection();
-                    connection.setRequestMethod("GET");
-                    connection.setUseCaches(true);
-                    connection.setConnectTimeout(10000);
-                    connection.setReadTimeout(10000);
-                    InputStream in = connection.getInputStream();
-                    BitmapFactory.Options options = new BitmapFactory.Options();
-                    options.inSampleSize = sResamplingRate;
-                  //  options.inPreferredConfig = Bitmap.Config.ARGB_4444;
-                    Bitmap response = BitmapFactory.decodeStream(in, null, options);
-                    in.close();
+                if (getBitmapFromNative(hashName) != null) {
                     if (listener != null) {
-                        saveFile(a, response);
-                        listener.onBitmapFinish(response);
+                        listener.onBitmapFinish(getBitmapFromNative(hashName));
                     }
-                } catch (Exception e) {
-                    if (listener != null) {
-                        listener.onError(e);
-                    }
-                } finally {
-                    if (connection != null) {
-                        connection.disconnect();
+                } else {
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            iv.setImageResource(sResLoad);
+                        }
+                    });
+                    HttpURLConnection connection = null;
+                    try {
+                        URL url = new URL(address);
+                        connection = (HttpURLConnection) url.openConnection();
+                        connection.setRequestMethod("GET");
+                        connection.setUseCaches(true);
+                        connection.setConnectTimeout(10000);
+                        connection.setReadTimeout(10000);
+                        InputStream in = connection.getInputStream();
+                        final BitmapFactory.Options options = new BitmapFactory.Options();
+                        options.inSampleSize = sResamplingRate;
+                        Bitmap response = BitmapFactory.decodeStream(in, null, options);
+                        in.close();
+                        if (listener != null) {
+                            saveFile(hashName, response);
+                            mMemoryCache.put(hashName + "", response);
+                            listener.onBitmapFinish(response);
+                        }
+                    } catch (Exception e) {
+                        if (listener != null) {
+                            listener.onError(e);
+                        }
+                    } finally {
+                        if (connection != null) {
+                            connection.disconnect();
+                        }
                     }
                 }
             }
         }
+    }
+
+    private static Bitmap initLruCache() {
+        int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 2014);
+        int cacheSize = maxMemory / 8;
+        mMemoryCache = new LruCache<String, Bitmap>(cacheSize) {
+            @Override
+            protected int sizeOf(String key, Bitmap value) {
+                return value.getRowBytes() * value.getHeight() / 2014;
+            }
+        };
+        return null;
     }
 
     private static void saveFile(int name, Bitmap bitmap) {
@@ -176,6 +203,7 @@ public class PhotoLoader {
         FileInputStream in = null;
         try {
             in = sContext.openFileInput(String.valueOf(name));
+            mMemoryCache.put(name + "", BitmapFactory.decodeStream(in));
             return BitmapFactory.decodeStream(in);
         } catch (Exception ignored) {
         }
@@ -205,6 +233,7 @@ public class PhotoLoader {
                         Toast.makeText(sContext, "重新加载中", Toast.LENGTH_SHORT).show();
                         loadAgain();
                     }
+
                     private void loadAgain() {
                         if (sIsFailTouchToReload) {
                             iv.setOnClickListener(new View.OnClickListener() {
