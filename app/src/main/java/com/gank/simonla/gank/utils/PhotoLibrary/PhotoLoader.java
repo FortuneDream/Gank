@@ -27,8 +27,8 @@ import java.net.URL;
 public class PhotoLoader {
 
     private static boolean sIsFailTouchToReload = false;
-    public static final String TAG = "PhotoLoader";
-    private static boolean sIsOpenLruCache = true;
+    public static final String LOADING = "loading";
+    public static final String FAIL = "fail";
     private static Context sContext;
     private static int sResLoad;
     private static int sResFail;
@@ -50,9 +50,7 @@ public class PhotoLoader {
 
     public static void init(Context context) {
         sContext = context;
-        if (sIsOpenLruCache) {
-            initLruCache();
-        }
+        initLruCache();
     }
 
     public static void setLoadDefault(int res) {
@@ -106,24 +104,24 @@ public class PhotoLoader {
 
     private static void getHttpBitmap(final String address, final ImageView iv, final DrawableCallbackListener listener) {
         if (address == null) {
-            iv.setImageResource(sResFail);
+            setFail(iv);
         } else {
             final int hashName = address.hashCode();
             if (mMemoryCache.get(hashName + "") != null) {
                 if (listener != null) {
                     listener.onBitmapFinish(mMemoryCache.get(hashName + ""));
-                    Log.d(TAG, "getHttpBitmap: LRUFinish");
                 }
             } else {
                 if (getBitmapFromNative(hashName) != null) {
                     if (listener != null) {
+                        mMemoryCache.put(hashName + "", getBitmapFromNative(hashName));
                         listener.onBitmapFinish(getBitmapFromNative(hashName));
                     }
                 } else {
                     new Handler(Looper.getMainLooper()).post(new Runnable() {
                         @Override
                         public void run() {
-                            iv.setImageResource(sResLoad);
+                            setLoading(iv);
                         }
                     });
                     HttpURLConnection connection = null;
@@ -139,8 +137,8 @@ public class PhotoLoader {
                         options.inSampleSize = sResamplingRate;
                         Bitmap response = BitmapFactory.decodeStream(in, null, options);
                         in.close();
+                        saveFile(hashName, response);
                         if (listener != null) {
-                            saveFile(hashName, response);
                             mMemoryCache.put(hashName + "", response);
                             listener.onBitmapFinish(response);
                         }
@@ -158,7 +156,7 @@ public class PhotoLoader {
         }
     }
 
-    private static Bitmap initLruCache() {
+    private static void initLruCache() {
         int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 2014);
         int cacheSize = maxMemory / 8;
         mMemoryCache = new LruCache<String, Bitmap>(cacheSize) {
@@ -167,7 +165,32 @@ public class PhotoLoader {
                 return value.getRowBytes() * value.getHeight() / 2014;
             }
         };
-        return null;
+        setDefaultLRU();
+    }
+
+    private static void setLoading(ImageView iv) {
+        if (mMemoryCache.get(LOADING) != null) {
+            iv.setImageBitmap(mMemoryCache.get(LOADING));
+        } else {
+            iv.setImageResource(sResLoad);
+        }
+    }
+
+    private static void setFail(ImageView iv) {
+        if (mMemoryCache.get(FAIL) != null) {
+            iv.setImageBitmap(mMemoryCache.get(FAIL));
+        } else {
+            iv.setImageResource(sResFail);
+        }
+    }
+
+    private static void setDefaultLRU() {
+        if (sResFail != 0 && sResLoad != 0) {
+            Bitmap loading = BitmapFactory.decodeResource(sContext.getResources(), sResLoad);
+            Bitmap fail = BitmapFactory.decodeResource(sContext.getResources(), sResFail);
+            mMemoryCache.put(LOADING, loading);
+            mMemoryCache.put(FAIL, fail);
+        }
     }
 
     private static void saveFile(int name, Bitmap bitmap) {
@@ -203,7 +226,6 @@ public class PhotoLoader {
         FileInputStream in = null;
         try {
             in = sContext.openFileInput(String.valueOf(name));
-            mMemoryCache.put(name + "", BitmapFactory.decodeStream(in));
             return BitmapFactory.decodeStream(in);
         } catch (Exception ignored) {
         }
@@ -221,7 +243,7 @@ public class PhotoLoader {
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
-                iv.setImageResource(sResFail);
+                setFail(iv);
             }
         });
         iv.setOnClickListener(new View.OnClickListener() {
