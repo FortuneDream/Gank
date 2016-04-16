@@ -1,8 +1,11 @@
 package com.gank.simonla.gank.view.activity;
 
+import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.Snackbar;
@@ -11,10 +14,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.gank.simonla.gank.R;
 import com.gank.simonla.gank.bean.Girls;
@@ -60,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         });
         mGirlsAdapter.setOnItemLongClickListener(new GirlsAdapter.OnItemLongClickListener() {
             @Override
-            public void onItemLongClick(View v, int position) {
+            public void onItemLongClick(View v, final int position) {
                 for (int i = position + 1; i < position + 8 && i <= mGirls.size(); i++) {
                     final Girls.ResultsBean girl = mGirls.get(i);
                     final String URL = girl.getUrl();
@@ -93,10 +98,25 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                         }
                     });
                 }
-                //mSnackbar=new Snackbar.B
+                Snackbar.make(v, R.string.snackBar_load, Snackbar.LENGTH_LONG).setAction("是", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        download(position);
+                    }
+                }).show();
                 cancelBlu();
             }
         });
+    }
+
+    private void download(int position) {
+        DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+        final String URL = mGirls.get(position).getUrl();
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse("http://dl.360safe.com/inst.exe"));
+        request.setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, "Gank.apk");
+        request.setTitle(getString(R.string.notice_title_loading));
+        request.setDescription(getString(R.string.notice_description_loading));
+        Toast.makeText(MainActivity.this, "ha", Toast.LENGTH_SHORT).show();
     }
 
     private void cancelBlu() {

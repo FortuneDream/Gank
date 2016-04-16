@@ -94,4 +94,7 @@
         "when a user tries to pick up one of cards.\n\n"
     </string>
     <string name="o">o</string>
+    <string name="snackBar_load">是否下载并设为壁纸</string>
+    <string name="notice_title_loading">下载中</string>
+    <string name="notice_description_loading">正在下载</string>
 </resources>
