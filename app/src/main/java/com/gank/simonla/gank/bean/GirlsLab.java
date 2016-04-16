@@ -1,11 +1,8 @@
 package com.gank.simonla.gank.bean;
 
 import android.content.Context;
-import android.os.Handler;
-import android.os.Message;
-import android.util.Log;
 
-import com.gank.simonla.gank.utils.HttpUtil;
+import com.mobile.simonla.library.HttpUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;

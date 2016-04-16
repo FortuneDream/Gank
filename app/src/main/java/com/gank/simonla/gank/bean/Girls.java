@@ -1,32 +1,13 @@
 package com.gank.simonla.gank.bean;
 
+import android.graphics.Bitmap;
+
 import java.util.List;
 
 /**
  * Created by asus on 2016/4/3.
  */
 
-/*    "_id": "56f8ac1367765933d8be9154",
-            "_ns": "ganhuo",
-            "createdAt": "2016-03-28T11:59:15.439Z",
-            "desc": "3.28",
-            "publishedAt": "2016-03-29T11:56:01.215Z",
-            "source": "chrome",
-            "type": "福利",
-            "url": "http://ww3.sinaimg.cn/large/7a8aed7bjw1f2cfxa9joaj20f00fzwg2.jpg",
-            "used": true,
-            "who": "张涵宇"*/
-/*{
-    "_id": "56cc6d29421aa95caa708118",
-        "_ns": "ganhuo",
-        "createdAt": "2016-01-07T01:39:07.601Z",
-        "desc": "1.7",
-        "publishedAt": "2016-01-07T03:36:25.265Z",
-        "type": "福利",
-        "url": "http://ww4.sinaimg.cn/large/7a8aed7bjw1ezqon28qrzj20h80pamze.jpg",
-        "used": true,
-        "who": "张涵宇"
-},*/
 public class Girls {
 
     private boolean error;
@@ -58,6 +39,15 @@ public class Girls {
         private String url;
         private boolean used;
         private String who;
+        private Bitmap mBitmap;
+
+        public Bitmap getBitmap() {
+            return mBitmap;
+        }
+
+        public void setBitmap(Bitmap bitmap) {
+            mBitmap = bitmap;
+        }
 
         public String get_id() {
             return _id;

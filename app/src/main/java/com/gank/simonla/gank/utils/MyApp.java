@@ -19,5 +19,11 @@ public class MyApp extends Application {
         PhotoLoader.setCompressionRatio(100);
         PhotoLoader.setResamplingRate(2);
         PhotoLoader.setIsFailTouchToReload(false);
+        com.gank.simonla.gank.utils.PhotoLibrary.PhotoLoader.init(getApplicationContext());
+        com.gank.simonla.gank.utils.PhotoLibrary.PhotoLoader.setCompressionRatio(100);
+        com.gank.simonla.gank.utils.PhotoLibrary.PhotoLoader.setLoadDefault(R.drawable.ic_loading);
+        com.gank.simonla.gank.utils.PhotoLibrary.PhotoLoader.setFailDefault(R.drawable.ic_fail);
+        com.gank.simonla.gank.utils.PhotoLibrary.PhotoLoader.setIsFailTouchToReload(false);
+        com.gank.simonla.gank.utils.PhotoLibrary.PhotoLoader.setResamplingRate(2);
     }
 }

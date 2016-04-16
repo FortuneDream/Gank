@@ -1,27 +1,27 @@
 package com.gank.simonla.gank.view.activity;
 
 import android.app.ProgressDialog;
-import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.design.widget.Snackbar;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 
 import com.gank.simonla.gank.R;
 import com.gank.simonla.gank.bean.Girls;
 import com.gank.simonla.gank.bean.GirlsLab;
-import com.gank.simonla.gank.utils.OnVerticalScrollListener;
 import com.gank.simonla.gank.utils.SpacesItemDecoration;
 import com.gank.simonla.gank.view.adapter.GirlsAdapter;
+import com.mobile.simonla.library.FastBlurUtil;
 
 import java.util.ArrayList;
 
@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
 
     public static final int ERROR = 1;
     public static final int FINISH = 0;
-    public static final int COUNT = 10;
+    public static final int COUNT = 20;
     public static final int UPDATE = 2;
     private Toolbar mToolbar;
     private ArrayList<Girls.ResultsBean> mGirls;
@@ -40,6 +40,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     private ProgressDialog mProgressDialog;
     private boolean mIsLoading = false;
     private StaggeredGridLayoutManager mStaggeredGridLayoutManager;
+    private ImageView mImageView;
+    private Snackbar mSnackbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +49,74 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         setContentView(R.layout.activity_main);
         getGirlsFormLab();
         initView();
+        setRefresh();
+    }
+
+    private void setInterestedFun() {
+        mGirlsAdapter.setOnItemClickListener(new GirlsAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position) {
+            }
+        });
+        mGirlsAdapter.setOnItemLongClickListener(new GirlsAdapter.OnItemLongClickListener() {
+            @Override
+            public void onItemLongClick(View v, int position) {
+                for (int i = position + 1; i < position + 8 && i <= mGirls.size(); i++) {
+                    final Girls.ResultsBean girl = mGirls.get(i);
+                    final String URL = girl.getUrl();
+                    final int finalI = i;
+                    com.gank.simonla.gank.utils.PhotoLibrary.PhotoLoader.open(URL, mImageView, new com.gank.simonla.gank.utils.PhotoLibrary.PhotoLoader.DrawableCallbackListener() {
+                        @Override
+                        public void onBitmapFinish(Bitmap response) {
+                            girl.setBitmap(FastBlurUtil.doBlur(response, 4, false));
+                            mGirlsAdapter.notifyItemChanged(finalI);
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                        }
+                    });
+                }
+                for (int i = position - 1; i > position - 8 && i >= 0; i--) {
+                    final Girls.ResultsBean girl = mGirls.get(i);
+                    final String URL = girl.getUrl();
+                    final int finalI = i;
+                    com.gank.simonla.gank.utils.PhotoLibrary.PhotoLoader.open(URL, mImageView, new com.gank.simonla.gank.utils.PhotoLibrary.PhotoLoader.DrawableCallbackListener() {
+                        @Override
+                        public void onBitmapFinish(Bitmap response) {
+                            girl.setBitmap(FastBlurUtil.doBlur(response, 4, false));
+                            mGirlsAdapter.notifyItemChanged(finalI);
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                        }
+                    });
+                }
+                //mSnackbar=new Snackbar.B
+                cancelBlu();
+            }
+        });
+    }
+
+    private void cancelBlu() {
+        mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                int i = 0;
+                for (Girls.ResultsBean girl : mGirls) {
+                    if (girl.getBitmap() != null) {
+                        girl.setBitmap(null);
+                        mGirlsAdapter.notifyItemChanged(i);
+                    }
+                    i++;
+                }
+            }
+        });
+    }
+
+    private void setRefresh() {
         mSwipeRefreshLayout.setOnRefreshListener(this);
         mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -85,15 +155,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         SpacesItemDecoration decoration = new SpacesItemDecoration(16);
         mRecyclerView.addItemDecoration(decoration);
         mRecyclerView.setAdapter(mGirlsAdapter = new GirlsAdapter(mGirls));
-        mGirlsAdapter.setOnItemClickListener(new GirlsAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position) {
-                Intent intent = new Intent();
-                intent.setClass(MainActivity.this, DetailedActivity.class);
-                startActivity(intent);
-
-            }
-        });
+        setInterestedFun();
     }
 
     private void getGirlsFormLab() {
@@ -119,6 +181,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.srw_girls);
+        mImageView = (ImageView) findViewById(R.id.iv_test);
         mRecyclerView = (RecyclerView) findViewById(R.id.rv_girls);
     }
 
