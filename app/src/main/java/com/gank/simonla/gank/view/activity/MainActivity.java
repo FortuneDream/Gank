@@ -14,7 +14,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -32,11 +31,12 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements SwipeRefreshLayout.OnRefreshListener {
 
+    private int firstVisibleItem;
+    private int lastVisibleItem;
     public static final int ERROR = 1;
     public static final int FINISH = 0;
     public static final int COUNT = 20;
     public static final int UPDATE = 2;
-    private Toolbar mToolbar;
     private ArrayList<Girls.ResultsBean> mGirls;
     private RecyclerView mRecyclerView;
     private SwipeRefreshLayout mSwipeRefreshLayout;
@@ -46,7 +46,6 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     private boolean mIsLoading = false;
     private StaggeredGridLayoutManager mStaggeredGridLayoutManager;
     private ImageView mImageView;
-    private Snackbar mSnackbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,30 +65,19 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
         mGirlsAdapter.setOnItemLongClickListener(new GirlsAdapter.OnItemLongClickListener() {
             @Override
             public void onItemLongClick(View v, final int position) {
-                for (int i = position + 1; i < position + 8 && i <= mGirls.size(); i++) {
+                for (int i = firstVisibleItem; i < lastVisibleItem+1; i++) {
+                    if (i == position) {
+                        continue;
+                    }
                     final Girls.ResultsBean girl = mGirls.get(i);
                     final String URL = girl.getUrl();
                     final int finalI = i;
-                    com.gank.simonla.gank.utils.PhotoLibrary.PhotoLoader.open(URL, mImageView, new com.gank.simonla.gank.utils.PhotoLibrary.PhotoLoader.DrawableCallbackListener() {
+                    com.gank.simonla.gank.utils.PhotoLibrary.PhotoLoader.open(URL, mImageView,
+                            new com.gank.simonla.gank.utils.PhotoLibrary
+                                    .PhotoLoader.DrawableCallbackListener() {
                         @Override
                         public void onBitmapFinish(Bitmap response) {
-                            girl.setBitmap(FastBlurUtil.doBlur(response, 4, false));
-                            mGirlsAdapter.notifyItemChanged(finalI);
-                        }
-
-                        @Override
-                        public void onError(Exception e) {
-                        }
-                    });
-                }
-                for (int i = position - 1; i > position - 8 && i >= 0; i--) {
-                    final Girls.ResultsBean girl = mGirls.get(i);
-                    final String URL = girl.getUrl();
-                    final int finalI = i;
-                    com.gank.simonla.gank.utils.PhotoLibrary.PhotoLoader.open(URL, mImageView, new com.gank.simonla.gank.utils.PhotoLibrary.PhotoLoader.DrawableCallbackListener() {
-                        @Override
-                        public void onBitmapFinish(Bitmap response) {
-                            girl.setBitmap(FastBlurUtil.doBlur(response, 4, false));
+                            girl.setBitmap(FastBlurUtil.doBlur(response, 60, false));
                             mGirlsAdapter.notifyItemChanged(finalI);
                         }
 
@@ -104,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                         download(position);
                     }
                 }).show();
-                cancelBlu();
+                cancelBlur();
             }
         });
     }
@@ -112,14 +100,15 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     private void download(int position) {
         DownloadManager downloadManager = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
         final String URL = mGirls.get(position).getUrl();
-        DownloadManager.Request request = new DownloadManager.Request(Uri.parse("http://dl.360safe.com/inst.exe"));
+        DownloadManager.Request request = new DownloadManager.Request(Uri
+                .parse("http://dl.360safe.com/inst.exe"));
         request.setDestinationInExternalFilesDir(this, Environment.DIRECTORY_DOWNLOADS, "Gank.apk");
         request.setTitle(getString(R.string.notice_title_loading));
         request.setDescription(getString(R.string.notice_description_loading));
         Toast.makeText(MainActivity.this, "ha", Toast.LENGTH_SHORT).show();
     }
 
-    private void cancelBlu() {
+    private void cancelBlur() {
         mRecyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
@@ -132,6 +121,7 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                     }
                     i++;
                 }
+                setRefresh();
             }
         });
     }
@@ -144,18 +134,23 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                 super.onScrolled(recyclerView, dx, dy);
                 int[] into = new int[2];
                 into = mStaggeredGridLayoutManager.findLastVisibleItemPositions(into);
-                int lastVisibleItem = Math.max(into[0], into[1]);
+                int[] first = new int[2];
+                first = mStaggeredGridLayoutManager.findFirstVisibleItemPositions(first);
+                firstVisibleItem = Math.min(first[0], first[1]);
+                lastVisibleItem = Math.max(into[0], into[1]);
                 int totalItemCount = mStaggeredGridLayoutManager.getItemCount();
                 if (lastVisibleItem >= totalItemCount - 8 && dy > 0) {
                     if (!mIsLoading) {
                         mPage++;
                         mIsLoading = true;
-                        GirlsLab.get(MainActivity.this).getGirlsFromWeb(COUNT, mPage, new GirlsLab.FinishListener() {
+                        GirlsLab.get(MainActivity.this).getGirlsFromWeb(COUNT, mPage,
+                                new GirlsLab.FinishListener() {
                             @Override
                             public void onFinish() {
                                 Message message = new Message();
                                 message.what = UPDATE;
                                 sHandler.sendMessage(message);
+                                cancelBlur();
                             }
 
                             @Override
@@ -170,7 +165,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     }
 
     private void setRecyclerView() {
-        mStaggeredGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        mStaggeredGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager
+                .VERTICAL);
         mRecyclerView.setLayoutManager(mStaggeredGridLayoutManager);
         SpacesItemDecoration decoration = new SpacesItemDecoration(16);
         mRecyclerView.addItemDecoration(decoration);
@@ -198,8 +194,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
     }
 
     private void initView() {
-        mToolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(mToolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.srw_girls);
         mImageView = (ImageView) findViewById(R.id.iv_test);
         mRecyclerView = (RecyclerView) findViewById(R.id.rv_girls);
@@ -245,7 +241,8 @@ public class MainActivity extends AppCompatActivity implements SwipeRefreshLayou
                     mGirls = GirlsLab.get(MainActivity.this).getGirls();
                     if (mGirls != null) {
                         if (mGirlsAdapter != null) {
-                            for (int i = mGirlsAdapter.getItemCount(); i < mGirlsAdapter.getItemCount() + 10; i++) {
+                            for (int i = mGirlsAdapter.getItemCount(); i < mGirlsAdapter
+                                    .getItemCount() + 10; i++) {
                                 mGirlsAdapter.notifyItemChanged(mPage);
                             }
                         }

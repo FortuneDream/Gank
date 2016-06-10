@@ -8,14 +8,11 @@ import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.gank.simonla.gank.R;
 import com.gank.simonla.gank.bean.Girls;
-import com.mobile.simonla.library.FastBlurUtil;
 import com.mobile.simonla.library.PhotoLibrary.PhotoLoader;
 
 import java.util.ArrayList;
@@ -49,6 +46,7 @@ public class GirlsAdapter extends RecyclerView.Adapter<GirlsAdapter.ViewHolder> 
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
+        holder.setIsRecyclable(false);
         final Girls.ResultsBean girl = mGirlsList.get(position);
         final String url = girl.getUrl();
         final Bitmap bitmap = girl.getBitmap();
@@ -56,7 +54,7 @@ public class GirlsAdapter extends RecyclerView.Adapter<GirlsAdapter.ViewHolder> 
         final ImageView photo = holder.mPhoto;
         if (bitmap != null) {
             photo.setImageBitmap(bitmap);
-        }else{
+        } else {
             // 其实你的顺序还是会错乱的，这里还是给iv一个tag
             photo.setTag(url);
             // 给iv清空图片，否则看到图片变动感觉和跳加载错乱跳动一样
