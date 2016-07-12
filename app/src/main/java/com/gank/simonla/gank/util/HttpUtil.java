@@ -1,4 +1,4 @@
-package com.gank.simonla.gank.utils;
+package com.gank.simonla.gank.util;
 
 import java.io.BufferedReader;
 import java.io.InputStream;

@@ -1,4 +1,4 @@
-package com.gank.simonla.gank.utils;
+package com.gank.simonla.gank.util;
 
 import android.support.v7.widget.RecyclerView;
 

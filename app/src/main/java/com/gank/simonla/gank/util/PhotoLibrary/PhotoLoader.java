@@ -1,4 +1,4 @@
-package com.gank.simonla.gank.utils.PhotoLibrary;
+package com.gank.simonla.gank.util.photoLibrary;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -151,7 +151,8 @@ public class PhotoLoader {
      * @param iv       ImageView
      * @param listener 回调方法
      */
-    private static void getHttpBitmap(final String address, final ImageView iv, final DrawableCallbackListener listener) {
+    private static void getHttpBitmap(final String address, final ImageView iv, final
+    DrawableCallbackListener listener) {
         if (address == null) {
             new Handler(Looper.getMainLooper()).post(new Runnable() {
                 @Override

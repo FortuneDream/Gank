@@ -1,4 +1,4 @@
-package com.gank.simonla.gank.utils;
+package com.gank.simonla.gank.util;
 
 /**
  * Created by asus on 2016/4/6.
