@@ -1,18 +1,18 @@
 package com.gank.simonla.gank.girlList;
 
-import android.graphics.Bitmap;
+import android.content.Context;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
 import com.gank.simonla.gank.R;
 import com.gank.simonla.gank.data.bean.RemoteGirlBean;
-import com.gank.simonla.gank.util.photoLibrary.PhotoLoader;
 
+import java.net.URI;
 import java.util.ArrayList;
 
 import butterknife.BindView;
@@ -28,12 +28,15 @@ public class GirlListAdapter extends RecyclerView.Adapter<GirlListAdapter.ViewHo
 
     public static final String TAG = "GirlListAdapter";
 
+    private Context mContext;
+
     public GirlListAdapter(ArrayList<RemoteGirlBean.ResultsBean> girls) {
         mGirls = girls;
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        mContext = parent.getContext();
         return new ViewHolder(LayoutInflater.
                 from(parent.getContext()).
                 inflate(R.layout.item_girls_list, parent, false));
@@ -41,13 +44,16 @@ public class GirlListAdapter extends RecyclerView.Adapter<GirlListAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        final RemoteGirlBean.ResultsBean girl = mGirls.get(position);
-        final String url = girl.getUrl();
-        final ImageView photo = holder.mIvGirlPhoto;
+        ImageView photo = holder.mIvGirlPhoto;
 
-        Log.d(TAG, "onBindViewHolder: " + url);
+        Glide.with(mContext)
+                .load(mGirls.get(position).getUrl())
+                .fitCenter()
+                .placeholder(R.drawable.ic_loading)
+                .error(R.drawable.ic_fail)
+                .into(photo);
 
-        photo.setTag(url);
+/*        photo.setTag(url);
         PhotoLoader.open(url, photo, new PhotoLoader.DrawableCallbackListener() {
             @Override
             public void onBitmapFinish(Bitmap response) {
@@ -58,7 +64,7 @@ public class GirlListAdapter extends RecyclerView.Adapter<GirlListAdapter.ViewHo
             public void onError(Exception e) {
                 e.printStackTrace();
             }
-        });
+        });*/
     }
 
     @Override

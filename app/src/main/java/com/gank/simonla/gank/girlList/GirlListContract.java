@@ -15,13 +15,19 @@ public interface GirlListContract {
     interface View extends BaseView<Presenter> {
         void showGirls(ArrayList<RemoteGirlBean.ResultsBean> arrayList);
 
+        void showMoreGirls(ArrayList<RemoteGirlBean.ResultsBean> arrayList);
+
         void showError(String e);
 
-        void refresh();
+        void showProgressBar();
+
+        void cancelProgressBar();
     }
 
     interface Presenter extends BasePresenter {
-        void getGirls();
+        void getMoreGirls();
+
+        void refresh();
     }
 
 }

@@ -1,5 +1,7 @@
 package com.gank.simonla.gank.girlList;
 
+import android.annotation.TargetApi;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -10,7 +12,6 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.gank.simonla.gank.R;
-import com.gank.simonla.gank.data.GirlDataSource;
 import com.gank.simonla.gank.data.bean.RemoteGirlBean;
 import com.gank.simonla.gank.data.remote.GirlDataRemoteRepository;
 import com.gank.simonla.gank.util.SpacesItemDecoration;
@@ -31,9 +32,13 @@ public class GirlListActivity extends AppCompatActivity implements GirlListContr
     @BindView(R.id.srw_girls)
     SwipeRefreshLayout mSrwGirls;
 
-    private int mPage = 0;
+    private StaggeredGridLayoutManager mStaggeredGridLayoutManager;
     private GirlListContract.Presenter mPresenter;
+    private ArrayList<RemoteGirlBean.ResultsBean> mGirls;
 
+    public static final String TAG = "GirlListActivity";
+
+    @TargetApi(Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,10 +47,34 @@ public class GirlListActivity extends AppCompatActivity implements GirlListContr
         setSupportActionBar(mToolbar);
         setRecyclerView();
 
-        mPresenter=new GirlListPresenter(
+        mRvGirls.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                int visibleItemCount = mStaggeredGridLayoutManager.getChildCount();
+                int totalItemCount = mStaggeredGridLayoutManager.getItemCount();
+                int[] into = new int[2];
+                into = mStaggeredGridLayoutManager.findFirstVisibleItemPositions(into);
+                int pastVisibleItems = (into[0] + into[1]) / 2;
+                if ((visibleItemCount + pastVisibleItems) >= totalItemCount) {
+                    mPresenter.getMoreGirls();
+                }
+            }
+        });
+
+        mSrwGirls = new SwipeRefreshLayout(this);
+
+        mSrwGirls.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+
+            }
+        });
+
+        new GirlListPresenter(
                 GirlDataRemoteRepository.getInstance(),
                 this,
-                mPage
+                0
         );
     }
 
@@ -56,15 +85,22 @@ public class GirlListActivity extends AppCompatActivity implements GirlListContr
     }
 
     private void setRecyclerView() {
-        StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
-        mRvGirls.setLayoutManager(staggeredGridLayoutManager);
+        mStaggeredGridLayoutManager
+                = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        mRvGirls.setLayoutManager(mStaggeredGridLayoutManager);
         SpacesItemDecoration decoration = new SpacesItemDecoration(16);
         mRvGirls.addItemDecoration(decoration);
     }
 
     @Override
     public void showGirls(ArrayList<RemoteGirlBean.ResultsBean> arrayList) {
-        mRvGirls.setAdapter(new GirlListAdapter(arrayList));
+        mGirls = arrayList;
+        mRvGirls.setAdapter(new GirlListAdapter(mGirls));
+    }
+
+    @Override
+    public void showMoreGirls(ArrayList<RemoteGirlBean.ResultsBean> arrayList) {
+        mGirls = arrayList;
     }
 
     @Override
@@ -73,12 +109,17 @@ public class GirlListActivity extends AppCompatActivity implements GirlListContr
     }
 
     @Override
-    public void refresh() {
+    public void showProgressBar() {
+        mSrwGirls.setRefreshing(true);
+    }
 
+    @Override
+    public void cancelProgressBar() {
+        mSrwGirls.setRefreshing(false);
     }
 
     @Override
     public void setPresenter(GirlListContract.Presenter presenter) {
-
+        mPresenter = presenter;
     }
 }
